@@ -1,6 +1,6 @@
 # Import python packages
 import streamlit as st
-from snowflake.snowpark.context import get_active_session
+from snowflake.snowpark import Session
 from snowflake.snowpark.functions import col
 
 st.title("🥤 Customize Your Smoothie!")
@@ -9,7 +9,9 @@ st.write("Choose the fruits you want in your custom Smoothie!")
 name_on_order = st.text_input("Name on Smoothie:")
 st.write("The name on your Smoothie will be:", name_on_order)
 
-session = get_active_session()
+# NEW for SniS: create session using Streamlit secrets (will be configured later)
+connection_parameters = st.secrets["snowflake"]
+session = Session.builder.configs(connection_parameters).create()
 
 rows = (
     session
@@ -46,3 +48,4 @@ if ingredients_list:
     if time_to_insert:
         session.sql(my_insert_stmt).collect()
         st.success("Your Smoothie is ordered, " + name_on_order + "!", icon="✅")
+
