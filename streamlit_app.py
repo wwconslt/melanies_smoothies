@@ -14,19 +14,24 @@ st.write("The name on your Smoothie will be:", name_on_order)
 connection_parameters = st.secrets["snowflake"]
 session = Session.builder.configs(connection_parameters).create()
 
-rows = (
+# NEW: Pull FRUIT_NAME + SEARCH_ON into a dataframe so we can inspect it
+my_dataframe = (
     session
-        .table("SMOOTHIES.PUBLIC.FRUIT_OPTIONS")
-        .select(col("FRUIT_NAME"))
-        .sort(col("FRUIT_NAME"))
-        .collect()
+        .table("smoothies.public.fruit_options")
+        .select(col("FRUIT_NAME"), col("SEARCH_ON"))
 )
 
-fruit_list = [r["FRUIT_NAME"] for r in rows if r["FRUIT_NAME"] is not None]
+# Show the dataframe in the app (for debugging/verification)
+st.dataframe(data=my_dataframe, use_container_width=True)
+
+# Stop here so we can focus on verifying the new column data before continuing
+st.stop()
+
+# --- Everything below will NOT run until you remove st.stop() in the next step ---
 
 ingredients_list = st.multiselect(
     "Choose up to 5 ingredients:",
-    fruit_list,
+    [],  # placeholder for now (we will wire this up in the next step)
     max_selections=5
 )
 
@@ -57,3 +62,4 @@ if ingredients_list:
     if time_to_insert:
         session.sql(my_insert_stmt).collect()
         st.success("Your Smoothie is ordered, " + name_on_order + "!", icon="✅")
+
